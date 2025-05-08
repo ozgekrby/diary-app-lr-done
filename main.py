@@ -34,9 +34,9 @@ class User(db.Model):
 	#id
 	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 	# Giriş
-	
+	email = db.Column(db.String(100), nullable=False)
 	# Şifre
-	
+	password = db.Column(db.String(30), nullable=False)
 
 
 
@@ -50,26 +50,29 @@ def login():
         
         # Kullanıcı doğrulama
           # Veritabanındaki tüm kullanıcıları al
-        
-            #Görev #4. Kullanıcıyı yetkilendir
-            
-                  # Giriş başarılıysa yönlendirme yap
-            
-                
-                
-
-    
-    return render_template('login.html')		    
-          
+        users_db = User.query.all()
+          # Her bir kullanıcıyı kontrol et  
+        for user in users_db:
+            # Kullanıcı dogrulama (giriş bilgileri dogruysa)
+            if form_login == user.email and form_password == user.password:
+                return redirect('/index')
+            # Kullanıcı dogrulama (giriş bilgileri doğru değilse)
+        error = 'Hatalı giriş veya şifre'
+        return render_template('login.html', error=error)    
+    # Giriş sayfasını çalıştırma
+    else:
+            return render_template('login.html')   
   
 @app.route('/reg', methods=['GET','POST'])
 def reg():
     if request.method == 'POST':
-        login= request.form['email']
+        email= request.form['email']
         password = request.form['password']
         
         #Görev #3 Kullanıcı verilerinin veri tabanına kaydedilmesini sağlayın
-        
+        user = User(email=email, password=password)
+        db.session.add(user)    
+        db.session.commit()
 
         
         return redirect('/')
@@ -114,9 +117,7 @@ def form_create():
     else:
         return render_template('create_card.html')
 
-
-
-
-
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
